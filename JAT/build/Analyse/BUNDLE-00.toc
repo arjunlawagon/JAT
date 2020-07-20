@@ -1,0 +1,3 @@
+([('Analyse',
+   '/Users/arjunlawagon/PycharmProjects/JAT/dist/Analyse',
+   'EXECUTABLE')],)

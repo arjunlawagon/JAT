@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width,initial-scale=1" name="viewport">
+  <meta content="description" name="description">
+  <meta name="google" content="notranslate" />
+  <meta content="Job analysis tool" name="Arjun">
+
+  <!-- Disable tap highlight on IE -->
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/analyse.png">
+  <link href="./assets/favicon.ico" rel="icon">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.0/dropzone.css" rel="stylesheet">
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.0/dropzone.js"></script>
+  <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
+  <script type="text/javascript" src="/eel.js"></script>
+  <script type="text/javascript" src="functions.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      // Add smooth scrolling to all links
+      $("a").on('click', function(event) {
+
+        // Make sure this.hash has a value before overriding default behavior
+        if (this.hash !== "") {
+          // Prevent default anchor click behavior
+          event.preventDefault();
+
+          // Store hash
+          var hash = this.hash;
+
+          // Using jQuery's animate() method to add smooth page scroll
+          // The optional number (800) specifies the number of milliseconds it takes to scroll to the specified area
+          $('html, body').animate({
+            scrollTop: $(hash).offset().top
+          }, 800, function(){
+
+            // Add hash (#) to URL when done scrolling (default click behavior)
+            window.location.hash = hash;
+          });
+        } // End if
+      });
+    });
+  </script>
+  <style>
+    canvas{
+  		-moz-user-select: none;
+  		-webkit-user-select: none;
+  		-ms-user-select: none;
+  	}
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+  </style>
+
+  <title>Joblog Analysis Tool</title>
+
+  <link href="./main.550dcf66.css" rel="stylesheet">
+
+</head>
+
+<body>
+<header>
+  <nav class="navbar navbar-default active">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="./index.html" title="">
+        <!--  <img src="./assets/images/mashup-icon.svg" class="navbar-logo-img" alt="">  -->
+        <img src="./assets/images/analysis.svg" width="40" height="40" class="navbar-logo-img " alt="">
+          Joblog Analysis Tool
+        </a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+  <div class="hero-full-container background-image-container white-text-container">
+    <div class="container" id="upload">
+      <div class="row">
+        <div class="col-xs-6 col-md-6">
+            <h3>BAU JOBLOG</h3>
+          <SECTION>
+            <DIV id="dropzone-bau">
+              <FORM class="dropzone needsclick" id="bau-upload" action="#">
+                <div class="fallback">
+                  <input name="file" type="file" multiple />
+                </div>
+                <DIV class="dz-message needsclick">
+                  Drop your BAU joblog here<BR> Or, click to browse.
+                </DIV>
+              </FORM>
+            </DIV>
+          </SECTION>
+        </div>
+        <div class="col-xs-6 col-md-6">
+            <h3>PROJECT JOBLOG</h3>
+          <SECTION>
+            <DIV id="dropzone-prj">
+              <FORM class="dropzone needsclick" id="prj-upload" action="#">
+                <DIV class="dz-message needsclick">
+                  Drop your PROJECT joblog here<BR> Or, click to browse.
+                </DIV>
+              </FORM>
+            </DIV>
+          </SECTION>
+        </div>
+    </div>
+      <div class="container">
+          <div class="row">
+            <div class="text-center">
+              <div class="col-xs-8 col-xs-offset-2 col-md-6 col-md-offset-3">
+                  <br>
+                  <button class="btn btn-default btn-lg" onClick="window.location.reload();">
+                    <i class="fa fa-refresh"></i>
+                    RESET
+                  </button>
+                  <button id="processbutton" class="btn btn-default btn-lg">
+                    <i class="loading-icon fa fa-spinner fa-spin fa-fw hide"></i>
+                    <span class="btn-txt">ANALYSE JOBLOGS</span>
+                  </button>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-8 col-xs-offset-2 col-md-6 col-md-offset-3">
+            <br>
+            <div><small>If job is new, please input same log in bau and prj.</small><br></div>
+            <div id="message"></div>
+          </div>
+        </div>
+      </div>
+  </div>
+  </div>
+  <div><hr></div>
+  <div id="resultsdiv">
+      <div class="section-container" id="comparison">
+        <div class="container">
+          <div class="row">
+            <div class="col-xs-12 col-md-12">
+              <div class="text-center">
+                <br>
+                <h2>Resource Usage Comparison</h2>
+                <p>This chart shows the comparison of the CPU/IO between BAU and PROJECT version.</p>
+                <p id="missing1"></p>
+                <p id="missing2"></p>
+                  <canvas id="cpu-chart" width="800" height="450"></canvas>
+                  <button class="btn btn-warning btn-sm" id="linebuttoncpu">Line Chart</button>
+                  <button class="btn btn-success btn-sm" id="barbuttoncpu">Bar Chart</button>
+                <br>
+                <hr>
+                <p>This chart shows the comparison of the EXCP count between BAU and PROJECT version.</p><br>
+                <canvas id="excp-chart" width="800" height="450"></canvas>
+                <button class="btn btn-warning btn-sm" id="linebuttonexcp">Line Chart</button>
+                <button class="btn btn-success btn-sm" id="barbuttonexcp">Bar Chart</button>
+              </div>
+           </div>
+          </div>
+        </div>
+      </div>
+      <div><hr></div>
+      <div>
+        <div class="container">
+        <!--  <div class="row section-container-spacer"> -->
+            <div class="row">
+            <div class="col-xs-8 col-xs-offset-2 col-md-8 col-md-offset-2">
+              <h2 class="text-center">BAU JOB STEPS DETAILS</h2>
+              <p>Below table shows the Program, CPU/IO, EXCP count and execution time of the BAU job.</p>
+              <div>
+                <table class="table table-responsive table-hover" id="bautable">
+                  <thead class="thead-dark" id="bauhead">
+                  </thead>
+                  <tbody id="bau_tbody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      <!--  <div class="section-container">  -->
+          <div class="container">
+            <div class="row">
+              <div class="col-xs-8 col-xs-offset-2 col-md-8 col-md-offset-2">
+                <hr>
+                <h2 class="text-center">PROJECT JOB STEPS DETAILS</h2>
+                <p>Below table shows the Program, CPU/IO, EXCP count and execution time of the PRJ job.</p>
+                <div>
+                  <table class="table table-responsive table-hover" id="prjtable">
+                    <thead class="thead-dark" id="prjhead">
+                    </thead>
+                    <tbody id="prj_tbody">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              </div>
+            </div>
+      </div>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function (event) {
+    navbarFixedTopAnimation();
+  });
+</script>
+
+
+<footer class="footer-container white-text-container">
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="row">
+          <div class="col-xs-12 col-sm-7">
+            <p><small>For any issues, please reach out to Arjun.<br>Tool written in Python and JavaScript.</small>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function (event) {
+    navActivePage();
+    scrollRevelation('.reveal');
+  });
+</script>
+
+<script type="text/javascript" src="./main.0cf8b554.js"></script>
+
+<script type="text/javascript">
+      $(document).ready(function() {
+    $("#resultsdiv").hide();
+  });
+</script>
+
+<script type="text/javascript">
+    $('#processbutton').click(function(){
+    //     pythonlink(bauFileInput,prjFileInput);
+      if (bauFileInput == "" || prjFileInput == "" ){
+    //        $("#alert").show();
+        $('#message').html('<div class="alert alert-danger fade in"><button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">×</button>Please select input.</div>');
+        $("#resultsdiv").hide();
+      }
+      else {
+        $(".loading-icon").removeClass("hide");
+        $(".button").attr("disabled", true);
+        $(".btn-txt").text("ANALYSING LOGS");
+        pythonlink(bauFileInput,prjFileInput);
+      };
+    });
+</script>
+
+<script type="text/javascript">
+  $('#linebuttoncpu').click(function(){
+    cpuchart.destroy();
+    showCPUComparison("line");
+  })
+
+  $('#barbuttoncpu').click(function() {
+    cpuchart.destroy();
+    showCPUComparison("bar");
+  })
+
+  $('#linebuttonexcp').click(function(){
+    excpchart.destroy();
+    showEXCPComparison("line");
+  })
+
+  $('#barbuttonexcp').click(function() {
+    excpchart.destroy();
+    showEXCPComparison("bar");
+  })
+</script>
+
+
+</html>
