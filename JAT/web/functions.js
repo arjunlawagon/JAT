@@ -27,6 +27,9 @@ var missingstepsprj = [];
 var excpcharttype = "";
 var cpucharttype = "";
 
+var baulinecount =0;
+var prjlinecount =0;
+
 async function pythonlink(bau,prj){
   initialize();
   let rs = await eel.mainprocess(bau,prj)();
@@ -347,8 +350,8 @@ $(window).scroll(function() {
     }
 });
 
-var bauFileInput =[""];
-var prjFileInput =[""];
+var bauFileInput =[''];
+var prjFileInput =[''];
 Dropzone.options.bauUpload = {
     paramName: "baufile",
     maxFiles: 1,
@@ -357,17 +360,23 @@ Dropzone.options.bauUpload = {
     init: function() {
       this.on("addedfile", function(file) {
         var file = this.files[0];
+        $('#message').html('<div class="alert alert-warning fade in"><button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">×</button>Queueing bau file, please wait.. </div>');
+
         var reader = new FileReader();
         reader.onload = function(progressEvent){
           // Entire file
       //    console.log(this.result);
-
+         // bauFileInput = this.result;
           // By lines
+
           var lines = this.result.split('\n');
           for(var line = 0; line < lines.length; line++){
-        //    console.log(lines[line]);
+         //   console.log(lines[line]);
             bauFileInput.push(lines[line]);
+            baulinecount++;
           }
+          $('#message').html('<div class="alert alert-info fade in"><button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">×</button>BAU file queued with ' + baulinecount.toLocaleString() + ' lines.</div>');
+
         };
         reader.readAsText(file);
 
@@ -399,16 +408,21 @@ Dropzone.options.prjUpload = {
       this.on("addedfile", function(file) {
         var file = this.files[0];
         var reader = new FileReader();
+        $('#message').html('<div class="alert alert-warning fade in"><button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">×</button>Queueing prj file, please wait..</div>');
+
         reader.onload = function(progressEvent){
           // Entire file
       //    console.log(this.result);
-
+       //   prjFileInput = this.result;
           // By lines
-          var lines = this.result.split('\n');
+           var lines = this.result.split('\n');
           for(var line = 0; line < lines.length; line++){
           //  console.log(lines[line]);
             prjFileInput.push(lines[line]);
+            prjlinecount++;
           }
+          $('#message').html('<div class="alert alert-info fade in"><button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">×</button>PRJ file queued with ' + prjlinecount.toLocaleString() + ' lines.</div>');
+
         };
         reader.readAsText(file);
 
@@ -432,3 +446,9 @@ Dropzone.options.prjUpload = {
         });
     }
 };
+
+eel.expose(updatestatus);
+function updatestatus(str){
+    console.log(str);
+    $('#message').html('<div class="alert alert-info fade in"><button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">×</button>' + str + '.</div>');
+}
