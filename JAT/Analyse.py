@@ -2,7 +2,6 @@ import re
 from datetime import datetime
 import eel
 import time
-import pkg_resources.py2_warn
 
 eel.init('web')
 
@@ -93,15 +92,48 @@ def findstep(x, l):
     pos3 = re.search("-P...     S.......", l)
     if pos or pos2 or pos3:
         print(l)
-        x.addstep(l[30:38].strip())
-        x.addexcp(int(l[49:51].strip()))
+        if len(x.getStep()) == 0:
+            eel.updatestatus("Searching for job steps..")
 
+        x.addstep(l[30:38].strip())
+        print(l[46:51].strip())
+
+        if l[46:51].strip().isnumeric():
+            x.addexcp(int(l[46:51].strip()))
+        else:
+            i = 46
+            temp = ''
+            while i < 52:
+                if l[i].isnumeric() or l[i] == 'K' or l[i] == '.':
+                    if l[i] == 'K':
+                        temp += '000'
+                        i = 52
+                    elif l[i] == '.':
+                        i = 52
+                    else:
+                        temp += str(l[i])
+                i += 1
+            x.addexcp(int(temp.strip()))
+            print(temp.strip())
 
 def findprog(x, l):
     pos = re.search("PROGRAM - ", l)
+
     if pos:
+        if len(x.getProg()) == 0:
+            eel.updatestatus("Searching for programs..")
         x.addprog(l[21:30])
-        x.addcpu(float(l[73:78].strip()))
+        print(l)
+        if l[73:78].strip().isnumeric():
+            x.addcpu(float(l[73:78].strip()))
+        else:
+            i = 73
+            temp = ''
+            while i < 78:
+                if l[i].isnumeric() or l[i] == '.':
+                    temp += str(l[i])
+                i += 1
+            x.addcpu(float(temp.strip()))
 
 
 def calculateElapseTime(jobversion):
@@ -152,6 +184,26 @@ def convert(seconds):
 
 
 def addTableSummary(jobversion):
+    """SYNCH LEN OF ARRAYS TO LEN OF STEPS SO THAT TABLE WILL BE SYNCH"""
+    if len(jobversion.getStep()) > len(jobversion.getProg()):
+        diff = len(jobversion.getStep()) - len(jobversion.getProg())
+        i = 1
+        while i <= diff:
+            jobversion.addprog("")
+            i += 1
+    if len(jobversion.getStep()) > len(jobversion.getCpu()):
+        diff = len(jobversion.getStep()) - len(jobversion.getCpu())
+        i = 1
+        while i <= diff:
+            jobversion.addcpu(0)
+            i += 1
+    if len(jobversion.getStep()) > len(jobversion.getExcp()):
+        diff = len(jobversion.getStep()) - len(jobversion.getExcp())
+        i =1
+        while i <= diff:
+            jobversion.addexcp(0)
+            i += 1
+
     """ADD 1 ROW AT END OF STEPS FOR SUMMARY"""
     jobversion.steps.append("SUMMARY")
     jobversion.prog.append("")
@@ -160,10 +212,8 @@ def addTableSummary(jobversion):
 
 def prepCpuChartData(jobversion):
     jobsteps = list.copy(bau.getStep())
-    print("prepcpu")
-    print("orig bau steps = " + str(bau.getStep()))
     jobsteps.pop()
-    print(jobsteps)
+
     cpudata = []
     cpudatadict = dict(zip(jobversion.getStep(), jobversion.getCpu()))
 
@@ -192,6 +242,7 @@ def mainprocess(baujob, prjjob):
     bau.initialize()
     prj.initialize()
     print("Analysing string tokens...")
+    eel.updatestatus("Log tokens analysis started..")
     if baujob == "":
         print("bau iput is empty")
         return '-1'
@@ -201,6 +252,7 @@ def mainprocess(baujob, prjjob):
         return '-1'
 
     print("bau")
+    eel.updatestatus("Analysing BAU logs..")
     for line in baujob:
         findstarttime(bau, line)
         findendtime(bau, line)
@@ -208,6 +260,7 @@ def mainprocess(baujob, prjjob):
         findprog(bau, line)
 
     print("prj")
+    eel.updatestatus("Analysing PRJ logs..")
     for line in prjjob:
         findstarttime(prj, line)
         findendtime(prj, line)
@@ -224,7 +277,8 @@ def mainprocess(baujob, prjjob):
     prj.setExecTime(calculateElapseTime(prj))
     addTableSummary(bau)
     addTableSummary(prj)
-    time.sleep(2)
+    eel.updatestatus("Finalizing some details..")
+    eel.sleep(2)
     print("Analysis completed.")
     if len(prj.getStep()) > len(bau.getStep()):
         return "-4"
